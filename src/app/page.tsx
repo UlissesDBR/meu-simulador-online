@@ -2,6 +2,17 @@
 import { useState, useMemo, FC, ReactNode, useRef, useLayoutEffect } from 'react';
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LabelList, BarChart, Bar, Line } from 'recharts';
 import { TrendingUp, Droplets, Leaf, Star, ArrowRight, ArrowDown, ArrowUp, Gauge, Scale, Route, PiggyBank, DollarSign, SlidersHorizontal, AreaChart as AreaChartIcon, Goal, Car, Fuel } from 'lucide-react';
+import Image from 'next/image';
+
+// --- Tipos para o Tooltip do Gráfico ---
+interface TooltipPayload {
+  value: number;
+}
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: TooltipPayload[];
+  label?: string;
+}
 
 // --- Tipos e Dados Padrão ---
 interface ScenarioData {
@@ -69,12 +80,10 @@ const KpiComparisonCard: FC<{ title: string, unit: string, actual: number, goal:
     const diff = goal - actual;
     const diffPct = (actual !== 0) ? ((diff / actual) * 100) : 0;
     const isBetter = higherIsBetter ? diff > 0 : diff < 0;
-    
     const formattedActual = actual.toLocaleString('pt-BR', { maximumFractionDigits: (unit.includes('km/mês')) ? 0 : 1 });
     const formattedGoal = goal.toLocaleString('pt-BR', { maximumFractionDigits: (unit.includes('km/mês')) ? 0 : 1 });
     const formattedDiff = diff.toLocaleString('pt-BR', { signDisplay: 'always', maximumFractionDigits: (unit.includes('km/mês')) ? 0 : 1 });
     const formattedDiffPct = diffPct.toLocaleString('pt-BR', { signDisplay: 'always', maximumFractionDigits: 1 });
-
     return (
         <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex flex-col justify-between">
             <div>
@@ -104,16 +113,29 @@ const KpiComparisonCard: FC<{ title: string, unit: string, actual: number, goal:
         </div>
     );
 };
-
 const FinancialCard: FC<{ period: string; savingValue: number; }> = ({ period, savingValue }) => ( <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 text-center"> <p className="text-sm font-medium text-gray-600">{period}</p> <div className="flex items-center justify-center gap-2 mt-2"> <PiggyBank className="text-green-600" size={20}/> <p className="text-xl font-bold text-gray-800"> {savingValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} </p> </div> </div> );
-const CustomCombinedTooltip: FC<any> = ({ active, payload, label }) => { if (active && payload && payload.length) { const economiaMensal = payload[0].value; const economiaAcumulada = payload[1].value; return ( <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200"> <p className="font-bold text-gray-800">{label}</p> <p className="text-sm text-purple-600"> Economia Mês: {economiaMensal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} </p> <p className="text-sm text-blue-600"> Economia Acumulada: {economiaAcumulada.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} </p> </div> ); } return null; };
+
+const CustomCombinedTooltip: FC<CustomTooltipProps> = ({ active, payload, label }) => { 
+    if (active && payload && payload.length) { 
+        const economiaMensal = payload[0].value; 
+        const economiaAcumulada = payload[1].value; 
+        return ( 
+            <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200"> 
+                <p className="font-bold text-gray-800">{label}</p> 
+                <p className="text-sm text-purple-600"> Economia Mês: {economiaMensal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} </p> 
+                <p className="text-sm text-blue-600"> Economia Acumulada: {economiaAcumulada.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} </p> 
+            </div> 
+        ); 
+    } 
+    return null; 
+};
 
 const Logo: FC = () => (
     <div className="flex items-center gap-3">
-      <img src="/logo.png" alt="Fleet Hub Logo" className="h-32 w-auto" />
-      <span className="text-2xl font-bold text-gray-800">
-        Fleet Hub <span className="text-blue-600">Simulator</span>
-      </span>
+        <Image src="/logo.png" alt="Fleet Hub Logo" width={128} height={128} className="h-32 w-auto" />
+        <span className="text-2xl font-bold text-gray-800">
+            Fleet Hub <span className="text-blue-600">Simulator</span>
+        </span>
     </div>
 );
 
@@ -154,7 +176,7 @@ export default function SimuladorPage() {
       const litrosMeta = distanciaTotalFrota / (metas.mediaCombustivel || 1);
       const economiaLitros = litrosAtuais - litrosMeta;
       const economiaMensalReais = economiaLitros > 0 ? economiaLitros * precoCombustivel : 0;
-      const economiaAnualLitros = economiaLitros > 0 ? economiaLitros * 12 : 0; // Cálculo adicionado
+      const economiaAnualLitros = economiaLitros > 0 ? economiaLitros * 12 : 0;
       const economiaPercentual = (litrosAtuais > 0) ? (economiaLitros / litrosAtuais) * 100 : 0;
       const reducaoCO2 = (economiaLitros * 2.68) / 1000;
       const notaAtualGeral = (calculateScore('Inércia', dadosAtuais.inerciaPct, segmentos[segmento]).score + calculateScore('Marcha Lenta', dadosAtuais.marchaLentaPct, segmentos[segmento]).score + calculateScore('Freadas', dadosAtuais.freadasBruscas, segmentos[segmento]).score) / 3;
@@ -166,7 +188,7 @@ export default function SimuladorPage() {
       return { 
         litrosAtuais, 
         economiaLitros, 
-        economiaAnualLitros, // Propriedade adicionada ao retorno
+        economiaAnualLitros,
         economiaPercentual, 
         reducaoCO2, 
         projecao: projecaoData, 
@@ -181,10 +203,9 @@ export default function SimuladorPage() {
 
   return (
     <div className="bg-slate-50 min-h-screen font-sans text-gray-800">
-      {/* HEADER ATUALIZADO */}
       <header className="bg-white sticky top-0 z-10 shadow-md">
         <div className="px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-32"> {/* Altura mínima para caber o logo */}
+          <div className="flex items-center justify-between h-32">
             <Logo />
             <div className="flex items-center gap-6">
               <HeaderStat title="Veículos na Frota" value={dadosAtuais.qtdVeiculos.toString()} icon={<Car size={24}/>} color="#0284c7" />
@@ -192,7 +213,6 @@ export default function SimuladorPage() {
             </div>
           </div>
         </div>
-        {/* Borda em gradiente fina */}
         <div className="h-0.5 bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600"></div>
       </header>
       
@@ -243,7 +263,6 @@ export default function SimuladorPage() {
                     <KpiComparisonCard icon={<Star />} title="Freadas Bruscas" unit="/100km" actual={dadosAtuais.freadasBruscas} goal={metas.freadasBruscas} higherIsBetter={false} />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-                    {/* CARD ATUALIZADO para mostrar Litros */}
                     <ResultCard icon={<Droplets />} title="Economia Anual (Litros)" value={resultados.economiaAnualLitros > 0 ? resultados.economiaAnualLitros.toLocaleString('pt-BR', {maximumFractionDigits: 0}) + ' L' : '0 L'} color="#0284c7" />
                     <ResultCard icon={<TrendingUp />} title="Potencial de Economia" value={`${resultados.economiaPercentual > 0 ? resultados.economiaPercentual.toFixed(1) : '0.0'}%`} color="#16a34a" />
                     <ResultCard icon={<DollarSign />} title="Economia Anual (R$)" value={(resultados.economia12Meses).toLocaleString('pt-BR', {style: 'currency', currency: 'BRL', minimumFractionDigits: 0})} color="#16a34a" />
@@ -275,9 +294,9 @@ export default function SimuladorPage() {
                          <LabelList 
                              dataKey="Economia Mensal (R$)" 
                              position="top" 
-                             formatter={(value: any) => {
-                                 if (typeof value === 'number' && value > 0) {
-                                     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', notation: 'compact' }).format(value)
+                             formatter={(label: ReactNode) => {
+                                 if (typeof label === 'number' && label > 0) {
+                                     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', notation: 'compact' }).format(label)
                                  }
                                  return '';
                              }}
