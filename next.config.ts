@@ -1,7 +1,12 @@
-import type { NextConfig } from "next";
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  // Adiciona a instrução para exportar como site estático
+  output: 'export',
 
-const nextConfig: NextConfig = {
-  /* config options here */
+  // Necessário para o componente <Image> funcionar no modo estático
+  images: {
+    unoptimized: true,
+  },
 };
 
-export default nextConfig;
+module.exports = nextConfig;
