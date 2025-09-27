@@ -1,7 +1,7 @@
 'use client';
 import { useState, useMemo, FC, ReactNode, useRef, useLayoutEffect } from 'react';
-import { AreaChart, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LabelList, BarChart, Bar, Line } from 'recharts';
-import { TrendingUp, Droplets, Leaf, Star, ArrowRight, ArrowDown, ArrowUp, Truck, Users, Gauge, Scale, Route, PiggyBank, DollarSign, SlidersHorizontal, AreaChart as AreaChartIcon, Goal, Car, Fuel } from 'lucide-react';
+import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LabelList, BarChart, Bar, Line } from 'recharts';
+import { TrendingUp, Droplets, Leaf, Star, ArrowRight, ArrowDown, ArrowUp, Gauge, Scale, Route, PiggyBank, DollarSign, SlidersHorizontal, AreaChart as AreaChartIcon, Goal, Car, Fuel } from 'lucide-react';
 
 // --- Tipos e Dados Padrão ---
 interface ScenarioData {
@@ -64,7 +64,47 @@ const InputField: FC<{ label: string; value: number; onChange: (value: number) =
 const SliderField: FC<{ label: string; value: number; onChange: (value: number) => void; unit: string; min: number; max: number; step: number; }> = ({ label, value, onChange, unit, min, max, step }) => ( <div> <div className="flex justify-between items-center mb-1"> <label className="block text-sm font-medium text-gray-600">{label}</label> <span className="text-sm font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded"> {unit === "R$/L" ? value.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}) : `${value}${unit}`} </span> </div> <input type="range" min={min} max={max} step={step} value={value} onChange={(e) => onChange(parseFloat(e.target.value))} className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer range-lg accent-blue-600" /> </div> );
 const SegmentControl: FC<{value: Segmento, onChange: (value: Segmento) => void}> = ({ value, onChange }) => { const options: {key: Segmento, label: string}[] = [ { key: 'rodoviario', label: 'Rodoviário'}, { key: 'offRoad', label: 'Off-Road'}, { key: 'onibus', label: 'Ônibus'} ]; return ( <div> <label className="block text-sm font-medium text-gray-600 mb-1">Segmento da Frota</label> <div className="grid grid-cols-3 gap-1 bg-slate-100 p-1 rounded-lg"> {options.map(opt => ( <button key={opt.key} onClick={() => onChange(opt.key)} className={`px-2 py-1.5 text-sm font-semibold rounded-md transition-colors ${value === opt.key ? 'bg-blue-600 text-white shadow' : 'text-slate-600 hover:bg-slate-200'}`}> {opt.label} </button> ))} </div> </div> ); };
 const ResultCard: FC<{ icon: ReactNode; title: string; value: string; color: string; }> = ({ icon, title, value, color }) => ( <div className={`bg-white p-4 rounded-xl shadow-sm border border-gray-200 text-center border-t-4`} style={{ borderColor: color }}> <div className="text-2xl mx-auto w-fit mb-1" style={{ color }}>{icon}</div> <p className="text-xl font-bold text-gray-800">{value}</p> <p className="text-xs text-gray-500">{title}</p> </div> );
-const KpiComparisonCard: FC<{ title: string, unit: string, actual: number, goal: number, higherIsBetter?: boolean, icon: ReactNode }> = ({ title, unit, actual, goal, higherIsBetter = false, icon }) => { const diff = goal - actual; const diffPct = (actual !== 0) ? ((diff / actual) * 100) : 0; const isBetter = higherIsBetter ? diff > 0 : diff < 0; const formatOptions: Intl.NumberFormatOptions = { maximumFractionDigits: (unit.includes('%') || unit.includes('ton')) ? 0 : 1 }; const formattedActual = actual.toLocaleString('pt-BR', { maximumFractionDigits: (unit.includes('km/mês')) ? 0 : 1 }); const formattedGoal = goal.toLocaleString('pt-BR', { maximumFractionDigits: (unit.includes('km/mês')) ? 0 : 1 }); const formattedDiff = diff.toLocaleString('pt-BR', { signDisplay: 'always', maximumFractionDigits: (unit.includes('km/mês')) ? 0 : 1 }); const formattedDiffPct = diffPct.toLocaleString('pt-BR', { signDisplay: 'always', maximumFractionDigits: 1 }); return ( <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex flex-col justify-between"> <div> <div className="flex items-center mb-2"> <div className="text-xl text-blue-600 mr-2">{icon}</div> <p className="text-base font-medium text-gray-700">{title} <span className="text-xs text-gray-400">({unit})</span></p> </div> <div className="grid grid-cols-[1fr_auto_1fr] gap-3 items-center text-center"> <div> <p className="text-xs text-gray-500">Atual</p> <p className="text-lg font-bold text-gray-800 break-words">{formattedActual}</p> </div> <ArrowRight size={24} className="text-gray-400 mx-auto" /> <div> <p className="text-xs text-gray-500">Meta</p> <p className="text-lg font-bold text-blue-600 break-words">{formattedGoal}</p> </div> </div> </div> <div className={`mt-3 pt-3 border-t border-gray-100 text-center ${isBetter ? 'text-green-600' : 'text-red-600'}`}> <p className="text-xs text-gray-500">Diferença</p> <div className="flex items-center justify-center gap-1 mt-1"> {diff !== 0 && (isBetter ? <ArrowUp size={16} /> : <ArrowDown size={16} />)} <p className="text-lg font-bold">{formattedDiff} ({formattedDiffPct}%)</p> </div> </div> </div> ); };
+
+const KpiComparisonCard: FC<{ title: string, unit: string, actual: number, goal: number, higherIsBetter?: boolean, icon: ReactNode }> = ({ title, unit, actual, goal, higherIsBetter = false, icon }) => {
+    const diff = goal - actual;
+    const diffPct = (actual !== 0) ? ((diff / actual) * 100) : 0;
+    const isBetter = higherIsBetter ? diff > 0 : diff < 0;
+    
+    const formattedActual = actual.toLocaleString('pt-BR', { maximumFractionDigits: (unit.includes('km/mês')) ? 0 : 1 });
+    const formattedGoal = goal.toLocaleString('pt-BR', { maximumFractionDigits: (unit.includes('km/mês')) ? 0 : 1 });
+    const formattedDiff = diff.toLocaleString('pt-BR', { signDisplay: 'always', maximumFractionDigits: (unit.includes('km/mês')) ? 0 : 1 });
+    const formattedDiffPct = diffPct.toLocaleString('pt-BR', { signDisplay: 'always', maximumFractionDigits: 1 });
+
+    return (
+        <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex flex-col justify-between">
+            <div>
+                <div className="flex items-center mb-2">
+                    <div className="text-xl text-blue-600 mr-2">{icon}</div>
+                    <p className="text-base font-medium text-gray-700">{title} <span className="text-xs text-gray-400">({unit})</span></p>
+                </div>
+                <div className="grid grid-cols-[1fr_auto_1fr] gap-3 items-center text-center">
+                    <div>
+                        <p className="text-xs text-gray-500">Atual</p>
+                        <p className="text-lg font-bold text-gray-800 break-words">{formattedActual}</p>
+                    </div>
+                    <ArrowRight size={24} className="text-gray-400 mx-auto" />
+                    <div>
+                        <p className="text-xs text-gray-500">Meta</p>
+                        <p className="text-lg font-bold text-blue-600 break-words">{formattedGoal}</p>
+                    </div>
+                </div>
+            </div>
+            <div className={`mt-3 pt-3 border-t border-gray-100 text-center ${isBetter ? 'text-green-600' : 'text-red-600'}`}>
+                <p className="text-xs text-gray-500">Diferença</p>
+                <div className="flex items-center justify-center gap-1 mt-1">
+                    {diff !== 0 && (isBetter ? <ArrowUp size={16} /> : <ArrowDown size={16} />)}
+                    <p className="text-lg font-bold">{formattedDiff} ({formattedDiffPct}%)</p>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const FinancialCard: FC<{ period: string; savingValue: number; }> = ({ period, savingValue }) => ( <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 text-center"> <p className="text-sm font-medium text-gray-600">{period}</p> <div className="flex items-center justify-center gap-2 mt-2"> <PiggyBank className="text-green-600" size={20}/> <p className="text-xl font-bold text-gray-800"> {savingValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} </p> </div> </div> );
 const CustomCombinedTooltip: FC<any> = ({ active, payload, label }) => { if (active && payload && payload.length) { const economiaMensal = payload[0].value; const economiaAcumulada = payload[1].value; return ( <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200"> <p className="font-bold text-gray-800">{label}</p> <p className="text-sm text-purple-600"> Economia Mês: {economiaMensal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} </p> <p className="text-sm text-blue-600"> Economia Acumulada: {economiaAcumulada.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} </p> </div> ); } return null; };
 
@@ -218,35 +258,35 @@ export default function SimuladorPage() {
                 </div>
             </div>
             <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200" style={{ height: `${graphHeight}px` }}>
-               <h2 className="text-lg font-semibold text-gray-800 mb-2">Projeção de Economia (Mensal e Acumulada)</h2>
-               <ResponsiveContainer width="100%" height="100%">
+              <h2 className="text-lg font-semibold text-gray-800 mb-2">Projeção de Economia (Mensal e Acumulada)</h2>
+              <ResponsiveContainer width="100%" height="100%">
                  <BarChart data={resultados.projecao} margin={{ top: 30, right: 30, left: 0, bottom: 5 }}>
                      <defs>
-                        <linearGradient id="colorBar" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.8}/>
-                            <stop offset="95%" stopColor="#c4b5fd" stopOpacity={0.4}/>
-                        </linearGradient>
+                         <linearGradient id="colorBar" x1="0" y1="0" x2="0" y2="1">
+                             <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.8}/>
+                             <stop offset="95%" stopColor="#c4b5fd" stopOpacity={0.4}/>
+                         </linearGradient>
                      </defs>
                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false}/>
                      <XAxis dataKey="mes" stroke="#6b7280" tickLine={false} axisLine={false} />
                      <YAxis stroke="#6b7280" tickLine={false} axisLine={false} tick={false} />
                      <Tooltip content={<CustomCombinedTooltip />} />
                      <Bar dataKey="Economia Mensal (R$)" fill="url(#colorBar)" name="Economia do Mês" radius={[4, 4, 0, 0]}>
-                        <LabelList 
-                            dataKey="Economia Mensal (R$)" 
-                            position="top" 
-                            formatter={(value: any) => {
-                                if (typeof value === 'number' && value > 0) {
-                                    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', notation: 'compact' }).format(value)
-                                }
-                                return '';
-                            }}
-                            style={{ fill: '#6d28d9', fontWeight: 'bold' }}
-                        />
+                         <LabelList 
+                             dataKey="Economia Mensal (R$)" 
+                             position="top" 
+                             formatter={(value: any) => {
+                                 if (typeof value === 'number' && value > 0) {
+                                     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', notation: 'compact' }).format(value)
+                                 }
+                                 return '';
+                             }}
+                             style={{ fill: '#6d28d9', fontWeight: 'bold' }}
+                         />
                      </Bar>
                      <Line type="monotone" dataKey="Economia Acumulada (R$)" stroke="#16a34a" strokeWidth={2} strokeDasharray="5 5" dot={false} name="Economia Acumulada" />
                  </BarChart>
-               </ResponsiveContainer>
+              </ResponsiveContainer>
             </div>
           </div>
         </div>
