@@ -118,7 +118,7 @@ const FinancialCard: FC<{ period: string; savingValue: number; }> = ({ period, s
 const CustomCombinedTooltip: FC<CustomTooltipProps> = ({ active, payload, label }) => { 
     if (active && payload && payload.length) { 
         const economiaAcumulada = payload[0].value;
-        const economiaMensal = economiaAcumulada / (parseInt(label?.split(' ')[1] || '1')); // Recalcula a mensal
+        const economiaMensal = economiaAcumulada / (parseInt(label?.split(' ')[1] || '1'));
         return ( 
             <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200"> 
                 <p className="font-bold text-gray-800">{label}</p> 
@@ -277,10 +277,9 @@ export default function SimuladorPage() {
                 </div>
             </div>
             <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200" style={{ height: `${graphHeight}px` }}>
-              {/* CORREÇÃO DO TÍTULO DO GRÁFICO */}
               <h2 className="text-lg font-semibold text-gray-800 mb-2">Projeção de Economia Acumulada</h2>
               <ResponsiveContainer width="100%" height="100%">
-                 <BarChart data={resultados.projecao} margin={{ top: 30, right: 30, left: 0, bottom: 5 }}>
+                 <BarChart data={resultados.projecao} margin={{ top: 40, right: 30, left: 0, bottom: 5 }}>
                      <defs>
                          <linearGradient id="colorBar" x1="0" y1="0" x2="0" y2="1">
                              <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.8}/>
@@ -291,21 +290,22 @@ export default function SimuladorPage() {
                      <XAxis dataKey="mes" stroke="#6b7280" tickLine={false} axisLine={false} />
                      <YAxis stroke="#6b7280" tickLine={false} axisLine={false} tick={false} />
                      <Tooltip content={<CustomCombinedTooltip />} />
-                     {/* CORREÇÃO DA BARRA E DO LABEL */}
                      <Bar dataKey="Economia Acumulada (R$)" fill="url(#colorBar)" name="Economia Acumulada" radius={[4, 4, 0, 0]}>
+                         {/* CORREÇÃO APLICADA AQUI */}
                          <LabelList 
                              dataKey="Economia Acumulada (R$)" 
-                             position="top" 
+                             position="top"
+                             angle={-45}
+                             dy={-8}
                              formatter={(label: ReactNode) => {
                                  if (typeof label === 'number' && label > 0) {
                                      return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', notation: 'compact' }).format(label)
                                  }
                                  return '';
                              }}
-                             style={{ fill: '#6d28d9', fontWeight: 'bold' }}
+                             style={{ fill: '#6d28d9', fontWeight: 'bold', fontSize: '12px' }}
                          />
                      </Bar>
-                     {/* LINHA REMOVIDA */}
                  </BarChart>
               </ResponsiveContainer>
             </div>
