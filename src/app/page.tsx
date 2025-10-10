@@ -117,8 +117,8 @@ const FinancialCard: FC<{ period: string; savingValue: number; }> = ({ period, s
 
 const CustomCombinedTooltip: FC<CustomTooltipProps> = ({ active, payload, label }) => { 
     if (active && payload && payload.length) { 
-        const economiaMensal = payload[0].value; 
-        const economiaAcumulada = payload[1].value; 
+        const economiaAcumulada = payload[0].value;
+        const economiaMensal = economiaAcumulada / (parseInt(label?.split(' ')[1] || '1')); // Recalcula a mensal
         return ( 
             <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200"> 
                 <p className="font-bold text-gray-800">{label}</p> 
@@ -263,14 +263,9 @@ export default function SimuladorPage() {
                     <KpiComparisonCard icon={<Star />} title="Freadas Bruscas" unit="/100km" actual={dadosAtuais.freadasBruscas} goal={metas.freadasBruscas} higherIsBetter={false} />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-                    {/* CORREÇÃO APLICADA AQUI */}
                     <ResultCard icon={<Droplets />} title="Economia Anual (Litros)" value={resultados.economiaAnualLitros > 0 ? new Intl.NumberFormat('pt-BR', { notation: 'compact', maximumFractionDigits: 1 }).format(resultados.economiaAnualLitros) + ' L' : '0 L'} color="#0284c7" />
-                    
                     <ResultCard icon={<TrendingUp />} title="Potencial de Economia" value={`${resultados.economiaPercentual > 0 ? resultados.economiaPercentual.toFixed(1) : '0.0'}%`} color="#16a34a" />
-                    
-                    {/* CORREÇÃO APLICADA AQUI */}
                     <ResultCard icon={<DollarSign />} title="Economia Anual (R$)" value={(resultados.economia12Meses).toLocaleString('pt-BR', {style: 'currency', currency: 'BRL', notation: 'compact', maximumFractionDigits: 2})} color="#16a34a" />
-                    
                     <ResultCard icon={<Leaf />} title="Redução de CO₂" value={resultados.reducaoCO2 > 0 ? resultados.reducaoCO2.toFixed(2) : '0.00'} color="#16a34a" />
                     <ResultCard icon={<Star />} title="Nota de Desempenho (Meta)" value={resultados.notaMeta} color="#facc15" />
                 </div>
@@ -282,7 +277,8 @@ export default function SimuladorPage() {
                 </div>
             </div>
             <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200" style={{ height: `${graphHeight}px` }}>
-              <h2 className="text-lg font-semibold text-gray-800 mb-2">Projeção de Economia (Mensal e Acumulada)</h2>
+              {/* CORREÇÃO DO TÍTULO DO GRÁFICO */}
+              <h2 className="text-lg font-semibold text-gray-800 mb-2">Projeção de Economia Acumulada</h2>
               <ResponsiveContainer width="100%" height="100%">
                  <BarChart data={resultados.projecao} margin={{ top: 30, right: 30, left: 0, bottom: 5 }}>
                      <defs>
@@ -295,9 +291,10 @@ export default function SimuladorPage() {
                      <XAxis dataKey="mes" stroke="#6b7280" tickLine={false} axisLine={false} />
                      <YAxis stroke="#6b7280" tickLine={false} axisLine={false} tick={false} />
                      <Tooltip content={<CustomCombinedTooltip />} />
-                     <Bar dataKey="Economia Mensal (R$)" fill="url(#colorBar)" name="Economia do Mês" radius={[4, 4, 0, 0]}>
+                     {/* CORREÇÃO DA BARRA E DO LABEL */}
+                     <Bar dataKey="Economia Acumulada (R$)" fill="url(#colorBar)" name="Economia Acumulada" radius={[4, 4, 0, 0]}>
                          <LabelList 
-                             dataKey="Economia Mensal (R$)" 
+                             dataKey="Economia Acumulada (R$)" 
                              position="top" 
                              formatter={(label: ReactNode) => {
                                  if (typeof label === 'number' && label > 0) {
@@ -308,7 +305,7 @@ export default function SimuladorPage() {
                              style={{ fill: '#6d28d9', fontWeight: 'bold' }}
                          />
                      </Bar>
-                     <Line type="monotone" dataKey="Economia Acumulada (R$)" stroke="#16a34a" strokeWidth={2} strokeDasharray="5 5" dot={false} name="Economia Acumulada" />
+                     {/* LINHA REMOVIDA */}
                  </BarChart>
               </ResponsiveContainer>
             </div>
